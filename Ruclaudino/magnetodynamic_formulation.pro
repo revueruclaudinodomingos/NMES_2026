@@ -9,7 +9,7 @@ FunctionSpace {
   { Name Hcurl_a_Mag_2D; Type Form1P;
     BasisFunction {
       { Name se; NameOfCoef ae; Function BF_PerpendicularEdge;
-        Support Domain_Mag; Entity NodesOf[ All ]; }
+        Support Region[{Domain_Mag, OuterBC}]; Entity NodesOf[ All ]; }   // CHANGED (team): OuterBC added so the boundary integral of the asymptotic BC can be assembled
       If (Flag_Degree_a == 2)
         { Name se2; NameOfCoef ae2; Function BF_PerpendicularEdge_2E;
           Support Domain_Mag; Entity EdgesOf[ All ]; }
@@ -91,6 +91,13 @@ Formulation {
       Galerkin { [ sigma[] * Dof{ur}, {ur} ] ;
         In DomainC_Mag ; Jacobian Vol ; Integration I1 ; }
 
+      // ADDED (team): asymptotic (mixed) BC on the circular truncation boundary, leading harmonic m: d a/d r + (m/r) a = 0
+      // (course ch. 4, 'Asymptotic boundary conditions'); enters as nu*(m/R)*int(a a') on the boundary
+      If(Flag_BC == 1)
+        Galerkin { [ (1.0/mu0) * m_asym / R_trunc * Dof{a} , {a} ];
+          In OuterBC; Jacobian Sur; Integration I1; }
+      EndIf
+
       GlobalTerm { [ Dof{I} , {U} ] ; In DomainCWithI_Mag ; }
 
       // Either you impose directly the function js0[]
@@ -168,11 +175,18 @@ PostProcessing {
 
 
       { Name JouleLosses; Value {
-          Integral { [ 0.5*sigma[]*SquNorm[Dt[{a}]] ]   ; In DomainC_Mag  ; Jacobian Vol ; Integration I1 ; }
+          // CHANGED (team): total current density, -sigma*(Dt[a]+ur); the template used Dt[{a}] only (Appendix A note)
+          Integral { [ 0.5*sigma[]*SquNorm[Dt[{a}]+{ur}] ]   ; In DomainC_Mag  ; Jacobian Vol ; Integration I1 ; }
           Integral { [ 0.5/sigma[]*SquNorm[js0[]] ]          ; In DomainS0_Mag ; Jacobian Vol ; Integration I1 ; }
           Integral { [ 0.5/sigma[]*SquNorm[Ns[]/Sc[]*{ir}] ] ; In DomainS_Mag  ; Jacobian Vol ; Integration I1 ; }
         }
       }
+
+      // ADDED (team): net current per region from the integral of j_z (cross-check of the global quantity I)
+      { Name Inet; Value {
+          Integral { [ CompZ[ -sigma[]*(Dt[{a}]+{ur}) ] ]; In DomainC_Mag; Jacobian Vol; Integration I1; }
+          Integral { [ CompZ[ Ns[]/Sc[]*{ir} ] ]; In DomainS_Mag; Jacobian Vol; Integration I1; }
+        } }
 
       { Name U ; Value {
           Term { [ {U} ]  ; In DomainC_Mag ; }
@@ -299,6 +313,19 @@ PostOperation{
        Print[ JouleLosses[APLSheath], OnGlobal, Format Table,
         SendToServer StrCat[po,"2APLSheath"],
         Units "W/m", File "res/losses_APLSheath.dat" ];
+
+
+      // ADDED (team): losses in the seabed and net currents / voltages of the massive regions (Q3.3, Q3.8)
+      Print[ JouleLosses[Soil], OnGlobal, Format Table, Units "W/m", File "res/losses_soil.dat" ];
+      Print[ JouleLosses[Inds], OnGlobal, Format Table, Units "W/m", File "res/losses_inds2.dat" ];
+      Print[ Inet[Lead_A], OnGlobal, Format Table, File "res/Inet_Lead_A.dat" ];
+      Print[ Inet[Lead_B], OnGlobal, Format Table, File "res/Inet_Lead_B.dat" ];
+      Print[ Inet[Lead_C], OnGlobal, Format Table, File "res/Inet_Lead_C.dat" ];
+      Print[ Inet[Steel], OnGlobal, Format Table, File "res/Inet_Steel.dat" ];
+      Print[ Inet[Soil], OnGlobal, Format Table, File "res/Inet_Soil.dat" ];
+      Print[ Inet[Ind_1], OnGlobal, Format Table, File "res/Inet_Ind_1.dat" ];
+      Print[ Inet[Ind_2], OnGlobal, Format Table, File "res/Inet_Ind_2.dat" ];
+      Print[ Inet[Ind_3], OnGlobal, Format Table, File "res/Inet_Ind_3.dat" ];
 
       // Region to adapt according to your cable
       Print[ R, OnRegion Ind_1, Format Table,

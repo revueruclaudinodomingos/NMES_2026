@@ -150,23 +150,9 @@ EndIf
 If(Flag_Defect)
   MeshSize{ PointsOf{ Surface{bV[]}; } } = lc_void;
 EndIf
-//+
-Show "*";
-//+
-Show "*";
-//+
-Show "*";
-//+
-Hide {
-  Point{1}; Curve{1}; Surface{12}; 
-}
-//+
-Show "*";
-//+
-Hide {
-  Point{1}; Curve{1}; Surface{12}; 
-}
-//+
-Show "*";
-//+
-Show "*";
+
+// --- Truncation-boundary mesh size (Q3.1 radius study); <0 keeps lc_soil ---
+DefineConstant[ lc_far = {-1, Name "Mesh/lc_far [mm] (<0 = lc_soil)"} ];
+If(lc_far > 0)
+  MeshSize{ PointsOf{ Curve{bnd()}; } } = lc_far*s_mesh;
+EndIf

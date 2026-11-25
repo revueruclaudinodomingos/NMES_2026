@@ -1,6 +1,6 @@
 // ============================================================
 // NMES High-Voltage Cable - Parameters (Per-core lead sheaths)
-// Version: V1.2
+// Version: V1.4 (screens aligned to ABB Table 44 capacitance; outer screen 0.6 = Open; d_trefoil 41.2 keeps 0.5 mm sheath gap)
 // Units: millimetres
 // Source: ABB 2GM5007 Table 44 (45 kV, 240 mm²)
 // ============================================================
@@ -8,13 +8,13 @@
 DefineConstant[
   // --- Core layer outer radii (mm) ---
   r_cond        = {9.05,  Name "Geometry/r_cond [mm]"},
-  r_semi_in     = {9.65,  Name "Geometry/r_semi_in [mm]"},
-  r_xlpe        = {17.65, Name "Geometry/r_xlpe [mm]"},
-  r_semi_out    = {18.25, Name "Geometry/r_semi_out [mm]"},
-  r_lead        = {19.75, Name "Geometry/r_lead [mm]"},
+  r_semi_in     = {10.25,  Name "Geometry/r_semi_in [mm]"},
+  r_xlpe        = {18.25, Name "Geometry/r_xlpe [mm]"},
+  r_semi_out    = {18.85, Name "Geometry/r_semi_out [mm]"},
+  r_lead        = {20.35, Name "Geometry/r_lead [mm]"},
 
   // --- Layout ---
-  d_trefoil     = {40.0,  Name "Geometry/d_trefoil [mm]"},
+  d_trefoil     = {41.2,  Name "Geometry/d_trefoil [mm]"},
 
   // --- Outer layers ---
   r_fill        = {45.0,  Name "Geometry/r_fill [mm]"},
@@ -43,7 +43,7 @@ lc_fill = lc_fill*s_mesh; lc_armour = lc_armour*s_mesh; lc_outer = lc_outer*s_me
 DefineConstant[
   Flag_Defect = {0,    Name "Defect/Enable (0 off, 1 on)"},
   r_def       = {0.5,  Name "Defect/Radius [mm]"},
-  d_def       = {10.5, Name "Defect/Distance from core C centre [mm]"}
+  d_def       = {11.5, Name "Defect/Distance from core C centre [mm]"}
 ];
 lc_void = r_def/10;
 
